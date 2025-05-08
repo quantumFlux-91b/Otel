@@ -1,23 +1,37 @@
-version: '3'
 services:
   item-service:
+    container_name: item-service
     build: ./
     ports:
       - "8080:8080"
     depends_on:
       - postgres
+      - otel-collector
     environment:
       SPRING_PROFILES_ACTIVE: docker
       JAVA_TOOL_OPTIONS: -javaagent:/opentelemetry-javaagent.jar
-      OTEL_LOGS_EXPORTER: logging
-      OTEL_TRACES_EXPORTER: logging
-      OTEL_EXPORTER_METRICS: otlp
-      OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: http/protobuf
-      OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: http://prometheus:9090/api/v1/otlp/v1/metrics
-      OTEL_METRIC_EXPORT_INTERVAL: 15000
-      OTEL_SERVICE_NAME: Demo
-      OTEL_RESOURCE_ATTRIBUTES: "service:instance:id=1"
-
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+      OTEL_LOGS_EXPORTER: otlp
+      OTEL_TRACES_EXPORTER: none
+      OTEL_METRICS_EXPORTER: otlp
+      OTEL_SERVICE_NAME: item-service
+    networks:
+      - monitoring
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    volumes:
+      - ./docker/collector/otel-collector-config.yml:/etc/otelcol-contrib/otel-collector-config.yml
+    command: [ "--config", "/etc/otelcol-contrib/otel-collector-config.yml" ]
+    networks:
+      - monitoring
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    depends_on:
+      - prometheus
+      - loki
   postgres:
     container_name: postgres
     image: postgres:latest
@@ -26,6 +40,8 @@ services:
       POSTGRES_DB: opentelemetry
       POSTGRES_USER: username
       POSTGRES_PASSWORD: password
+    networks:
+      - monitoring
     ports:
       - "5432:5432"
   prometheus:
@@ -35,15 +51,32 @@ services:
       - "9090:9090"
     volumes:
       - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - monitoring
     command:
       - "--web.enable-otlp-receiver"
       - "--config.file=/etc/prometheus/prometheus.yml"
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - monitoring
+    volumes:
+      - ./docker/loki/loki-config.yml:/etc/loki/local-config.yaml
   grafana:
     container_name: grafana
     image: grafana/grafana-oss
     volumes:
       - ./docker/grafana/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+    networks:
+      - monitoring
     ports:
       - "3000:3000"
     depends_on:
       - prometheus
+networks:
+  monitoring:
+    driver: bridge
