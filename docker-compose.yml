@@ -13,7 +13,7 @@ services:
       OTEL_EXPORTER_OTLP_PROTOCOL: grpc
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
       OTEL_LOGS_EXPORTER: otlp
-      OTEL_TRACES_EXPORTER: none
+      OTEL_TRACES_EXPORTER: otlp
       OTEL_METRICS_EXPORTER: otlp
       OTEL_SERVICE_NAME: item-service
     networks:
@@ -27,11 +27,11 @@ services:
     networks:
       - monitoring
     ports:
-      - "4317:4317"
-      - "4318:4318"
+      - "4317"
     depends_on:
       - prometheus
       - loki
+      - tempo
   postgres:
     container_name: postgres
     image: postgres:latest
@@ -55,6 +55,7 @@ services:
       - monitoring
     command:
       - "--web.enable-otlp-receiver"
+      - "--web.enable-remote-write-receiver"
       - "--config.file=/etc/prometheus/prometheus.yml"
   loki:
     image: grafana/loki:latest
@@ -66,6 +67,17 @@ services:
       - monitoring
     volumes:
       - ./docker/loki/loki-config.yml:/etc/loki/local-config.yaml
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    ports:
+      - "3200:3200"      # Tempo HTTP API (query)
+      - "4317:4317"      # OTLP gRPC
+    volumes:
+      - ./docker/tempo/tempo.yml:/etc/tempo.yml
+    command: [ "-config.file=/etc/tempo.yml" ]
+    networks:
+      - monitoring
   grafana:
     container_name: grafana
     image: grafana/grafana-oss

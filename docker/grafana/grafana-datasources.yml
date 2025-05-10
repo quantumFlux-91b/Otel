@@ -5,15 +5,43 @@ datasources:
   # Prometheus
   - name: Prometheus
     type: prometheus
+    uid: prometheus
     access: proxy
     url: http://prometheus:9090
     isDefault: true
     editable: true
+    jsonData:
+      httpMethod: GET
+    version: 1
 
   # Loki
   - name: Loki
     type: loki
+    uid: loki
     access: proxy
     url: http://loki:3100
     isDefault: false
     editable: true
+
+  # Tempo
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    access: proxy
+    url: http://tempo:3200
+    isDefault: false
+    editable: true
+    version: 1
+    jsonData:
+      httpMethod: GET
+      tracesToLogsV2:
+        datasourceUid: 'loki'
+        spanStartTimeShift: '-2m'
+        spanEndTimeShift: '2m'
+        filterByTraceID: true
+        filterBySpanID: true
+      serviceMap:
+        enabled: true
+        datasourceUid: 'prometheus'
+      nodeGraph:
+        enabled: true

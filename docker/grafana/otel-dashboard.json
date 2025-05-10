@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 3,
+  "id": 1,
   "links": [],
   "panels": [
     {
@@ -113,12 +113,12 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "11.6.1",
+      "pluginVersion": "12.0.0",
       "targets": [
         {
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum by(\"http.request.method\", \"http.route\") (rate({\"http.server.request.duration_seconds_count\"}[$__rate_interval]))",
+          "expr": "sum by(\"http_request_method\", \"http_route\") (rate({\"http_server_request_duration_seconds_count\", exported_job=\"$Job\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "__auto",
@@ -164,7 +164,7 @@
               "type": "linear"
             },
             "showPoints": "auto",
-            "spanNulls": false,
+            "spanNulls": 60000,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -210,12 +210,12 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "11.6.1",
+      "pluginVersion": "12.0.0",
       "targets": [
         {
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum by(\"http.request.method\", \"http.route\") (rate({\"http.server.request.duration_seconds_sum\", job=\"$Job\"}[$__rate_interval])/rate({\"http.server.request.duration_seconds_count\", job=\"$Job\"}[$__rate_interval]))",
+          "expr": "sum by(\"http_request_method\", \"http_route\") (rate({\"http_server_request_duration_seconds_sum\", exported_job=\"$Job\"}[$__rate_interval])/rate({\"http_server_request_duration_seconds_count\", exported_job=\"$Job\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "__auto",
@@ -337,12 +337,12 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "11.6.1",
+      "pluginVersion": "12.0.0",
       "targets": [
         {
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "increase({\"jvm.gc.duration_seconds_sum\", job=\"$Job\"}[1m])",
+          "expr": "increase({\"jvm_gc_duration_seconds_sum\", exported_job=\"$Job\"}[1m])",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "__auto",
@@ -362,17 +362,17 @@
     "list": [
       {
         "current": {
-          "text": "Demo",
-          "value": "Demo"
+          "text": "item-service",
+          "value": "item-service"
         },
-        "definition": "label_values(job)",
+        "definition": "label_values(exported_job)",
         "description": "",
         "label": "Application",
         "name": "Job",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(job)",
+          "query": "label_values(exported_job)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
@@ -383,12 +383,12 @@
     ]
   },
   "time": {
-    "from": "2025-05-03T18:31:48.005Z",
-    "to": "2025-05-03T19:40:57.941Z"
+    "from": "now-15m",
+    "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Custom OTEL Prometheus",
   "uid": "bekskbc05io74d",
-  "version": 9
+  "version": 3
 }
