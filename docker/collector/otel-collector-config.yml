@@ -14,7 +14,15 @@ exporters:
       insecure: true
 connectors:
   servicegraph:
-    latency_histogram_buckets: [100ms, 250ms, 1s, 5s, 10s]
+    dimensions:
+      - db.system
+      - messaging.system
+    virtual_node_peer_attributes:
+      - db.name
+      - db.system
+      - messaging.system
+      - peer.service
+    virtual_node_extra_label: true
 service:
   pipelines:
     metrics:

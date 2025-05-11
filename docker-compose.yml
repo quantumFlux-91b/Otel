@@ -16,6 +16,8 @@ services:
       OTEL_TRACES_EXPORTER: otlp
       OTEL_METRICS_EXPORTER: otlp
       OTEL_SERVICE_NAME: item-service
+    volumes:
+      - ./docker/otelagent/opentelemetry-javaagent.jar:/opentelemetry-javaagent.jar
     networks:
       - monitoring
   otel-collector:
@@ -37,7 +39,7 @@ services:
     image: postgres:latest
     restart: always
     environment:
-      POSTGRES_DB: opentelemetry
+      POSTGRES_DB: item-service
       POSTGRES_USER: username
       POSTGRES_PASSWORD: password
     networks:
